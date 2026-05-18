@@ -18,17 +18,18 @@ class Solution {
          * One can also say, such regions are completely enclosed by 'X' cells.
          * 
          * TO DO:
-         * → identify surrounded regions (find connected 'O' cells not on outer
-         * boundary), then
+         * → identify surrounded regions, then
          * → for every surrounded region, replace all 'O's with 'X's.
          */
 
-        if (board == null || board.length == 0) return;
-        
+        if (board == null || board.length == 0)
+            return;
+
         int m = board.length;
         int n = board[0].length;
 
-        // visited matrix as 1D array: bijective mapping f(i, j) = i * n + j
+        // visited matrix as 1D array: bijective mapping f(i, j) = (i * n) + j = k
+        // f'(k) = (k / n, k % n) = (i, j)
         boolean[] visited = new boolean[m * n];
 
         // find surrounded regions
@@ -37,7 +38,7 @@ class Solution {
             for (int j = 1; j < n - 1; j++) {
                 // exclude first and last cols
 
-                int matToArr = i*n + j;
+                int matToArr = i * n + j;
 
                 if (board[i][j] == 'O' && !visited[matToArr]) {
                     // found base cell of unvisited region
@@ -45,16 +46,26 @@ class Solution {
 
                     // track if transitive chain touches boundary
                     // use boolean array so that we can pass primitive by reference, not by value!
-                    boolean[] touchesBoundary = {false};
+                    boolean[] touchesBoundary = { false };
 
                     // do dfs to find remainder of region
                     dfs(i, j, board, visited, currentRegion, touchesBoundary);
+
+                    if (!touchesBoundary[0]) {
+                        // change all 'O' to 'X' in currentRegion
+                        for (Integer cellPos : currentRegion) {
+                            int k_i = cellPos / n;
+                            int k_j = cellPos % n;
+                            board[k_i][k_j] = 'X';
+                        }
+                    }
                 }
             }
         }
     }
 
-    private void dfs(int i, int j, char[][] board, boolean[] visited, List<Integer> currentRegion, boolean[] touchesBoundary) {
+    private void dfs(int i, int j, char[][] board, boolean[] visited, List<Integer> currentRegion,
+            boolean[] touchesBoundary) {
         // TODO
 
         // now probe t,b,l,r cells
