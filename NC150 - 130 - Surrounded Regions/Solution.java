@@ -25,8 +25,7 @@ class Solution {
         if (board == null || board.length == 0)
             return;
 
-        int m = board.length;
-        int n = board[0].length;
+        int m = board.length, n = board[0].length;
 
         // visited matrix as 1D array: bijective mapping f(i, j) = (i * n) + j = k
         // f'(k) = (k / n, k % n) = (i, j)
@@ -39,8 +38,10 @@ class Solution {
                 // exclude first and last cols
 
                 int matToArr = i * n + j;
-
                 if (board[i][j] == 'O' && !visited[matToArr]) {
+                    // ̶m̶a̶r̶k̶ ̶v̶i̶s̶i̶t̶e̶d̶ -> moved to in dfs(...)
+                    // visited[(i * n) + j] = true;
+
                     // found base cell of unvisited region
                     List<Integer> currentRegion = new ArrayList<>();
 
@@ -66,18 +67,32 @@ class Solution {
 
     private void dfs(int i, int j, char[][] board, boolean[] visited, List<Integer> currentRegion,
             boolean[] touchesBoundary) {
-        // TODO
 
-        // now probe t,b,l,r cells
-        // & mark as visitied
-        for (int k = -1; k <= 1; k = k + 2) {
-            // horizontal shift
-            if (board[i][j + k] == 'O') {
+        int m = board.length;
+        int n = board[0].length;
 
-            }
-            // vertical shift
-            if (board[i + k][j] == 'O') {
+        // add current cell to region & mark visited
+        currentRegion.add((i * n) + j);
+        visited[(i * n) + j] = true;
 
+        // Check if THIS cell is on the boundary
+        if (i == 0 || i == m - 1 || j == 0 || j == n - 1) {
+            touchesBoundary[0] = true;
+        }
+
+        int[] dr = { -1, 1, 0, 0 };
+        int[] dc = { 0, 0, -1, 1 };
+
+        // recursively search
+        for (int k = 0; k < 4; k++) {
+            int ni = i + dr[k];
+            int nj = j + dc[k];
+
+            // bounds check
+            if (ni >= 0 && ni < m && nj >= 0 && nj < n) {
+                if (board[ni][nj] == 'O' && !visited[ni * n + nj]) {
+                    dfs(ni, nj, board, visited, currentRegion, touchesBoundary);
+                }
             }
         }
     }
