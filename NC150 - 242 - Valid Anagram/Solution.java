@@ -1,10 +1,15 @@
-import java.util.HashMap;
+// high overhead: Array of Structures (DOD anti-pattern)
+// import java.util.HashMap;
 
 public class Solution {
 
     public static void main(String[] args) {
+        char test = 'z';
+        byte testVal = (byte) (test - 97);
+        System.out.println(testVal);
+
         Solution sol = new Solution();
-        System.out.println(sol.isAnagram("a", "ab"));
+        System.out.println(sol.isAnagram("ba", "ab"));
     }
 
     public boolean isAnagram(String s, String t) {
@@ -30,59 +35,60 @@ public class Solution {
          * v) finally, return true.
          */
 
+        /*
+         * Better solution:
+         * Instead of two hashmaps,
+         * Make hMapS, then run through t and subtract values for each char.
+         * -> if val < 0, return false
+         * finally, run through hMapS and if non-zero value found, return false.
+         * else, return true.
+         */
+
         if (s.length() != t.length()) {
             return false;
         }
 
-        HashMap<Character, Integer> sMap = constructHashMap(s);
-        return compareHashMaps(sMap, t);
-    }
-
-    private HashMap<Character, Integer> constructHashMap(String s) {
-        HashMap<Character, Integer> hMap = new HashMap<Character, Integer>();
-        for (int i = 0; i < s.length(); i++) {
-            char currentChar = s.charAt(i);
-            Integer curFreq = hMap.get(currentChar);
-            if (curFreq == null) {
-                hMap.put(currentChar, 1);
-            } else {
-                hMap.put(currentChar, curFreq + 1);
-            }
-        }
-        return hMap;
-    }
-
-    private boolean compareHashMaps(HashMap<Character, Integer> sMap, String t) {
-        HashMap<Character, Integer> tMap = new HashMap<Character, Integer>();
-        for (int i = 0; i < t.length(); i++) {
-            char currentChar = t.charAt(i);
-            Integer curFreq = tMap.get(currentChar);
-            if (curFreq == null) {
-                tMap.put(currentChar, 1);
-            } else {
-                tMap.put(currentChar, curFreq + 1);
-            }
-
-            // Check if > is a strong enough condition to not need to check anything else
-            // after constructing the full sMap
-            // Think that null + > is strong enough, since if there are more characters in
-            // sMap, then some in hMap will need to have a higher count
-            if (sMap.get(currentChar) == null) {
-                return false;
-            } else if (tMap.get(currentChar) > sMap.get(currentChar)) {
-                return false;
-            }
+        var sMap = new DirectAddressTable();
+        // create sMap
+        for (char c : s.toCharArray()) {
+            sMap.increment(c);
         }
 
-        // final check for sMap[c] >hMap
-        for (Character currentChar : sMap.keySet()) {
-            if (tMap.get(currentChar) == null) {
+        for (char c : t.toCharArray()) {
+            sMap.decrement(c);
+            if (sMap.get(c) < 0)
                 return false;
-            } else if (sMap.get(currentChar) > tMap.get(currentChar)) {
+        }
+
+        for (int i : sMap.vals) {
+            if (i != 0)
                 return false;
-            }
         }
 
         return true;
+    }
+
+    class DirectAddressTable {
+        private final int[] vals = new int[26]; // vals need to store arbitrary frequencies up to 5x10^4
+
+        public void increment(char keyChar) {
+            this.vals[index(keyChar)]++;
+        }
+
+        public void decrement(char keyChar) {
+            this.vals[index(keyChar)]--;
+        }
+
+        public int get(char keyChar) {
+            return this.vals[index(keyChar)];
+        }
+
+        public void put(char key, int val) {
+            this.vals[index(key)] = val;
+        }
+
+        private int index(char c) {
+            return (c - 'a');
+        }
     }
 }
